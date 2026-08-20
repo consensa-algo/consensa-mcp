@@ -55,6 +55,9 @@ The server speaks MCP over stdio.
 ```
 
 ## Status
-v0.1 MVP, validated end-to-end on Algorand MainNet (a real per-call clearance
-settles on-chain, with the payment split verified to the microUSDC).
+v0.1 MVP, validated end-to-end on Algorand MainNet: payment
+BADUNG7YO263XRACSVHASSRJ5MIHXQRKDKUYKIRU42BAQEQCRXMA (10,000 microUSDC)
+settled by GYVS26OZABS4E6FQEH5C5YQBIV5ULG4VBMBVOYXCX4HG3FJ7UWGA, whose
+on-chain receipt records the split as 8,000 / 1,100 / 700 / 200 —
+summing exactly to the payment.
 Bring-your-own-wallet; start on Testnet.
