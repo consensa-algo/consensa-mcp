@@ -38,6 +38,65 @@ export async function receipt(cfg: Config, paymentTxId: string): Promise<unknown
   return body;
 }
 
+/**
+ * SD-017: settle which network we are on by ASKING the endpoint, never by
+ * inferring it from the URL — a URL does not carry its network, and guessing
+ * would repeat the failure where a silent default became a decision nobody made.
+ *
+ * `CONSENSA_NETWORK` unset means "ask"; set means "assert". Mainnet additionally
+ * requires the operator to have said so, because the first real spend should be
+ * an explicit act (same principle as SD-009's launch-intent flag).
+ *
+ * Cached per process: one probe, then reuse.
+ */
+let _resolvedNetwork: "testnet" | "mainnet" | undefined;
+
+async function reportedNetwork(cfg: Config): Promise<"testnet" | "mainnet" | undefined> {
+  if (_resolvedNetwork) return _resolvedNetwork;
+  try {
+    const res = await fetch(`${cfg.endpoint}/v1/health`);
+    if (!res.ok) return undefined;
+    const reported = (await res.json())?.network;
+    if (reported === "algorand-mainnet") _resolvedNetwork = "mainnet";
+    else if (reported === "algorand-testnet") _resolvedNetwork = "testnet";
+    return _resolvedNetwork;
+  } catch {
+    return undefined; // unreachable endpoint; the caller decides what that means
+  }
+}
+
+export async function resolveNetwork(cfg: Config): Promise<"testnet" | "mainnet"> {
+  const reported = await reportedNetwork(cfg);
+
+  if (reported === undefined) {
+    // Could not observe. Never treat "cannot check" as "fine" (SD-010): proceed
+    // only on an explicit declaration, and refuse when there is nothing to trust.
+    if (cfg.network) return cfg.network;
+    throw new Error(
+      `Could not read ${cfg.endpoint}/v1/health to determine the network, and ` +
+        `CONSENSA_NETWORK is not set. Set CONSENSA_NETWORK to the network your ` +
+        `endpoint serves ("mainnet" or "testnet"), or check that the endpoint is reachable.`
+    );
+  }
+
+  if (cfg.network && cfg.network !== reported) {
+    throw new Error(
+      `CONSENSA_NETWORK=${cfg.network} but ${cfg.endpoint} reports algorand-${reported}. ` +
+        `Set CONSENSA_NETWORK=${reported}, or point CONSENSA_ENDPOINT at a ${cfg.network} endpoint.`
+    );
+  }
+
+  if (!cfg.network && reported === "mainnet") {
+    throw new Error(
+      `CONSENSA_NETWORK is not set, and ${cfg.endpoint} reports algorand-mainnet. ` +
+        `Paying here spends REAL USDC. Set CONSENSA_NETWORK=mainnet to confirm that is ` +
+        `intended, or point CONSENSA_ENDPOINT at a testnet endpoint.`
+    );
+  }
+
+  return reported;
+}
+
 /* The decoded PaymentRequired shape can vary across x402-avm versions, so read
    payTo/price defensively from the most likely field paths. */
 function extractPayTo(pr: any): string | undefined {
@@ -59,9 +118,12 @@ export async function clearance(
   if (cached) return { ...(cached as object), idempotent: true };
 
   const url = `${cfg.endpoint}/v1/clearance`;
-  const caip2 = cfg.network === "mainnet" ? ALGORAND_MAINNET_CAIP2 : ALGORAND_TESTNET_CAIP2;
+  // Before anything is signed, and before any spend guard: agree with the
+  // endpoint about which chain this is (SD-017). Throws rather than guessing.
+  const network = await resolveNetwork(cfg);
+  const caip2 = network === "mainnet" ? ALGORAND_MAINNET_CAIP2 : ALGORAND_TESTNET_CAIP2;
   const algodUrl =
-    cfg.algodUrl || (cfg.network === "mainnet" ? DEFAULT_ALGOD_MAINNET : DEFAULT_ALGOD_TESTNET);
+    cfg.algodUrl || (network === "mainnet" ? DEFAULT_ALGOD_MAINNET : DEFAULT_ALGOD_TESTNET);
 
   if (!cfg.payerMnemonic) {
     throw new Error(
@@ -117,7 +179,7 @@ export async function clearance(
   const result = {
     payer: payer.addr.toString(),
     priceUsdc,
-    network: cfg.network,
+    network,
     settle,
     ...(body as object),
   };

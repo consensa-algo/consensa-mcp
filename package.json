@@ -1,6 +1,6 @@
 {
   "name": "consensa-mcp",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "MCP server for Consensa — consented, attributed, per-call payment for the open-source dependencies AI agents consume, settled in USDC on Algorand.",
   "type": "module",
   "license": "MIT",

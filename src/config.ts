@@ -9,7 +9,12 @@
 export interface Config {
   /** Base URL of the Consensa endpoint (no trailing slash). */
   endpoint: string;
-  network: "testnet" | "mainnet";
+  /** Network the endpoint serves. **NO DEFAULT, by design (SD-017).** A default
+   *  here can silently contradict the `endpoint` default and register the wrong
+   *  payment scheme. Optional at load for the same reason `payerMnemonic` is:
+   *  the free tools never need it. Resolved on the first paid call against what
+   *  the endpoint reports at /v1/health, and never inferred from the URL. */
+  network?: "testnet" | "mainnet";
   /** Optional algod URL override; defaults to the x402-avm network default. */
   algodUrl?: string;
   /** 25-word mnemonic of the payer (a DEDICATED low-balance spend wallet).
@@ -35,7 +40,9 @@ export function loadConfig(): Config {
   const endpoint = (
     process.env.CONSENSA_ENDPOINT || "https://consensa-endpoint-production.up.railway.app"
   ).replace(/\/+$/, "");
-  const network = process.env.CONSENSA_NETWORK === "mainnet" ? "mainnet" : "testnet";
+  const rawNetwork = process.env.CONSENSA_NETWORK?.trim().toLowerCase();
+  const network =
+    rawNetwork === "mainnet" ? "mainnet" : rawNetwork === "testnet" ? "testnet" : undefined;
   return {
     endpoint,
     network,

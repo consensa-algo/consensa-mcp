@@ -85,6 +85,7 @@ const transport = new StdioServerTransport();
 await server.connect(transport);
 // stderr only — never stdout (stdout is the MCP transport).
 console.error(
-  `consensa-mcp ready · network=${cfg.network} · endpoint=${cfg.endpoint} · ` +
+  `consensa-mcp ready · network=${cfg.network ?? "unset (resolved from the endpoint on the first paid call)"} · ` +
+    `endpoint=${cfg.endpoint} · ` +
     `budget/run=$${cfg.maxSpendUsdcPerRun} · payTo-pin=${cfg.expectedPayTo ? "on" : "off"}`
 );
