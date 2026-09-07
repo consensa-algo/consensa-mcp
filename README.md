@@ -1,5 +1,11 @@
 # consensa-mcp
 
+> **New here?** Building an AI agent that should pay for what it relies on — you're
+> in the right place. Wiring up a CI/CD pipeline instead? Start with
+> [consensa-action](https://github.com/consensa-algo/consensa-action#readme). Just
+> want to see it work, free, no wallet? Jump to
+> [Try it free](#try-it-free--no-wallet-no-keys-right-now) below.
+
 An MCP server that lets an AI agent record a **consented, attributed, paid-for**
 receipt for the open-source dependencies it consumes — settled per call in USDC on
 Algorand via Consensa. Each call splits payment on-chain: provider 80%, upstream
