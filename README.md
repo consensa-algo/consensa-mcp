@@ -31,6 +31,17 @@ Run the server with no env at all and ask your agent to preview a manifest. This
 the honest "$0 trial": the preview is the same computation the paid call performs,
 from the same endpoint, over the same terms — it simply stops before paying.
 
+**No MCP client either? Same trial, one `curl`:**
+
+```bash
+curl -s -X POST https://consensa-endpoint-production.up.railway.app/v1/quote \
+  -H "Content-Type: application/json" \
+  -d '{"manifest":{"type":"package.json","content":{"dependencies":{"left-pad":"^1.3.0"}}}}'
+```
+
+This is the exact HTTP call `consensa_attribution_preview` makes underneath — free,
+unauthenticated, no signature, no chain write. Swap `left-pad` for any package name.
+
 ## Configure
 Copy `.env.example` and fill it in — see that file for every variable. The payer
 mnemonic must come from your environment; never commit it.
