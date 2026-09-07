@@ -58,13 +58,23 @@ $env:CONSENSA_NETWORK="mainnet"; $env:CONSENSA_MCP_PAYER_MNEMONIC="<25 words>"
 ```
 
 ## Use it on Mainnet — from an MCP client (e.g. Claude Desktop)
+
+**Finding the config file on Windows:** the standard location is
+`%APPDATA%\Claude\claude_desktop_config.json`. If you installed Claude Desktop from the
+**Microsoft Store**, that file does not exist there — Windows redirects it to
+`%LOCALAPPDATA%\Packages\Claude_pzs8sxrjxfjjc\LocalCache\Roaming\Claude\claude_desktop_config.json`
+instead (the package hash is consistent across installs but not guaranteed forever). If
+neither path has the file yet, or you are unsure which install type you have, open Claude
+Desktop → Settings → Developer → Edit Config — it opens (and creates, if needed) the file
+at whichever path your install actually uses, so you do not have to guess.
+
 ```json
 {
   "mcpServers": {
     "consensa": {
       "command": "npx",
       "args": ["tsx", "src/index.ts"],
-      "cwd": "/absolute/path/to/consensa-mcp",
+      "cwd": "C:/Users/you/consensa-mcp",
       "env": {
         "CONSENSA_NETWORK": "mainnet",
         "CONSENSA_ENDPOINT": "https://consensa-endpoint-production.up.railway.app",
@@ -76,6 +86,15 @@ $env:CONSENSA_NETWORK="mainnet"; $env:CONSENSA_MCP_PAYER_MNEMONIC="<25 words>"
   }
 }
 ```
+
+**`cwd` must be an absolute path with forward slashes, even on Windows.**
+
+- Use: `C:/Users/you/consensa-mcp`
+- Do not use: `C:\Users\you\consensa-mcp` (backslashes) or `./consensa-mcp` (a relative path)
+
+A relative or backslash-escaped path does not raise an error. The server just fails to
+start, silently. The example above is a working entry, not a placeholder. Copy its shape,
+and change only the path.
 
 ## Status
 v0.2, validated end-to-end on Algorand MainNet: payment
