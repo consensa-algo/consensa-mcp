@@ -60,7 +60,10 @@ default decided.
 
 Spend guards (defaults): `MAX_SPEND_USDC_PER_RUN=5.00`, `MAX_PER_CALL_USDC=0.02`,
 `MAX_CALLS_PER_MIN=10`, plus idempotency (identical manifest within the TTL is not
-charged twice).
+charged twice). **They are counted in the server process's memory**, so they hold while
+the process runs: a restart — yours, or your MCP client relaunching the server — resets
+the running total and the idempotency cache. The only ceiling that survives a restart is
+the wallet's balance; fund it with no more than you are willing to spend.
 
 **Set `CONSENSA_EXPECTED_PAYTO`.** It is technically optional, but it is the only check
 against a substituted endpoint: with it, the server refuses to pay any other address.
