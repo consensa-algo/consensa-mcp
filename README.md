@@ -60,8 +60,14 @@ default decided.
 
 Spend guards (defaults): `MAX_SPEND_USDC_PER_RUN=5.00`, `MAX_PER_CALL_USDC=0.02`,
 `MAX_CALLS_PER_MIN=10`, plus idempotency (identical manifest within the TTL is not
-charged twice). Optionally pin `CONSENSA_EXPECTED_PAYTO` so the server refuses to
-pay any other address.
+charged twice).
+
+**Set `CONSENSA_EXPECTED_PAYTO`.** It is technically optional, but it is the only check
+against a substituted endpoint: with it, the server refuses to pay any other address.
+Without it, the network check asks the endpoint itself — which a substituted endpoint can
+answer — and only the spend caps limit what it can take. **This address is expected to
+change at Consensa's next Mainnet redeployment**; a pinned server then refuses to pay
+until you update it, failing closed rather than paying the wrong address.
 
 ## Run (from the cloned repo)
 ```
